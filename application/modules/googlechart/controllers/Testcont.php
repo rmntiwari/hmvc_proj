@@ -10,7 +10,7 @@
  	function index(){
 
  		// getting user list 
- 		echo "I am from home module and home controller and index function ";
+ 		echo "Bhasuri ";
  	}
 
 

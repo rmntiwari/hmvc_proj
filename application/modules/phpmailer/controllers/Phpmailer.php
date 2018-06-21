@@ -1,6 +1,5 @@
 <?php
-
- class Googlechart extends MY_Controller{
+class Phpmailer extends MY_Controller{
 
  
  	function __construct(){
@@ -19,21 +18,20 @@
 
 
     public function chart_pop(){
-    	echo "chart_pop";
-    	//$this->load->view('chartpop');
+    	
+    	$this->load->view('chartpop');
     }
 
 
 
     public function create_chart(){
-    	  echo "create_chart";
-    	//$this->load->view('createchart');
+    	  
+    	$this->load->view('createchart');
     }
 
 
 
  }
-
 
 
 ?>
