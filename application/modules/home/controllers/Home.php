@@ -34,6 +34,8 @@
     function test(){
 
     	echo "I am test method of home controller of home module.";
+    	$this->load->module('googlechart/testcont');
+ 		$this->testcont->index();
     }
 
 
