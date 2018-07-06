@@ -14,7 +14,7 @@
 		
 		<script>
 		var d=document;
-		var st=0; // set time 
+		var st=0; // set time
 		
 		/*
 			set time
