@@ -38,6 +38,10 @@ class Myxss extends MY_Controller{
  		$this->load->module('myxss/mycsrf');
  		$this->mycsrf->index();
     }
+	
+	function testsinglefileaddtogit(){
+		echo "rmnkumar";
+	}
 
 
     
