@@ -55,7 +55,7 @@
 			f=d.getElementsByTagName("script")[0];
 			s=d.createElement("script");
 			s.type="text/javascript";
-			s.src="/survey/manage/exitPopupCode.js?v=13";
+			s.src="http://localhost/hmvc_proj/assets/js/exit.js";
 			d.getElementsByTagName("body")[0].appendChild(s);
 		};
 
@@ -74,7 +74,6 @@
 			},(st * 1000));
 		}
 		</script>
-		<script src="http://localhost/hmvc_proj/assets/js/exit.js"></script>
 
 	</body>
 </html>
