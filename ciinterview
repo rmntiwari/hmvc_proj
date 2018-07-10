@@ -1,0 +1,665 @@
+HOOKS SESSION COOKIE DATABASE OF CI
+
+
+Hooks
+...........
+hooks provide a way of modify inner working of framework without hacking the core files.
+when codeigniter runs, it follow a specific execution process and if you want some action at a particular stage in the execution process.
+for example you might want to run a script right before your controllers get loaded or right after or your might want to trigger one of your own script in some other location.
+
+step1:- enable hook
+application/config/config.php 
+$config['enable_hooks'] = TRUE;
+............................................
+
+step2:- Define hook
+application/config/hooks.php file
+
+$hook['pre_controller'] = array(
+        'class'    => 'MyClass',
+        'function' => 'Myfunction',
+        'filename' => 'Myclass.php',
+        'filepath' => 'hooks',
+        'params'   => array('beer', 'wine', 'snacks')
+);
+
+class :- The name of the class you wish to invoke. If you prefer to use a procedural function instead of a class, leave this item blank.
+
+function:-  The function (or method) name you wish to call.
+filename :-  The file name containing your class/function.
+filepath :-  The name of the directory containing your script.
+
+Note: Your script must be located in a directory INSIDE your application/ directory, so the file path is relative to that directory.
+For example, if your script is located in application/hooks/, you will simply use ‘hooks’ as your filepath. If your script is located in application/hooks/utilities/ you will use ‘hooks/utilities’ as your filepath. No trailing slash.  
+  
+Params:-  Any parameters you wish to pass to your script. This item is optional.
+............................................
+Multiple Calls to the Same Hook
+$hook['pre_controller'][] = array(
+        'class'    => 'MyClass',
+        'function' => 'MyMethod',
+        'filename' => 'Myclass.php',
+        'filepath' => 'hooks',
+        'params'   => array('beer', 'wine', 'snacks')
+);
+$hook['pre_controller'][] = array(
+        'class'    => 'MyOtherClass',
+        'function' => 'MyOtherMethod',
+        'filename' => 'Myotherclass.php',
+        'filepath' => 'hooks',
+        'params'   => array('red', 'yellow', 'blue')
+);
+
+.........................................................
+
+
+
+Hook Points (total 7)
+
+The following is a list of available hook points.
+
+pre_system:-  Called very early during system execution. Only the benchmark and hooks class have been loaded at this point. No routing or other processes have happened.
+
+pre_controller:- Called immediately prior to any of your controllers being called. All base classes, routing, and security checks have been done.
+
+post_controller_constructor:- Called immediately after your controller is instantiated, but prior to any method calls happening.
+
+post_controller:- Called immediately after your controller is fully executed.
+    
+display_override:-  Overrides the _display() method, used to send the finalized page to the web browser at the end of system execution. This permits you to use your own display methodology. Note that you will need to reference the CI superobject with
+$this->CI =& get_instance() and then the finalized data will be available by calling $this->CI->output->get_output().
+
+cache_override:- Enables you to call your own method instead of the _display_cache() method in the Output Library. This permits you to use your own cache display mechanism.
+
+post_system:- Called after the final rendered page is sent to the browser, at the end of system execution after the finalized data is sent to the browser.
+
+.............................................................................................................................………………………………..
+
+how to use multiple database in ci
+....................................
+The config settings are stored in a multi-dimensional array with this prototype:
+$db['default'] = array(
+        'dsn'   => '',
+        'hostname' => 'localhost',
+        'username' => 'root',
+        'password' => '',
+        'database' => 'database_name',
+        'dbdriver' => 'mysqli',
+        'dbprefix' => '',
+        'pconnect' => TRUE,
+        'db_debug' => TRUE,
+        'cache_on' => FALSE,
+        'cachedir' => '',
+        'char_set' => 'utf8',
+        'dbcollat' => 'utf8_general_ci',
+        'swap_pre' => '',
+        'encrypt' => FALSE,
+        'compress' => FALSE,
+        'stricton' => FALSE,
+        'failover' => array()
+);
+Some database drivers (such as PDO, PostgreSQL, Oracle, ODBC) might require a full DSN string to be provided. If that is the case, you should use the ‘dsn’ configuration setting, as if you’re using the driver’s underlying native PHP extension, like this:
+
+// PDO
+$db['default']['dsn'] = 'pgsql:host=localhost;port=5432;dbname=database_name';
+
+// Oracle
+$db['default']['dsn'] = '//localhost/XE';
+
+....................................................
+
+You can also specify failovers for the situation when the main connection cannot connect for some reason. These failovers can be specified by setting the failover for a connection like this:
+
+$db['default']['failover'] = array(
+                array(
+                        'hostname' => 'localhost1',
+                        'username' => '',
+                        'password' => '',
+                        'database' => '',
+                        'dbdriver' => 'mysqli',
+                        'dbprefix' => '',
+                        'pconnect' => TRUE,
+                        'db_debug' => TRUE,
+                        'cache_on' => FALSE,
+                        'cachedir' => '',
+                        'char_set' => 'utf8',
+                        'dbcollat' => 'utf8_general_ci',
+                        'swap_pre' => '',
+                        'encrypt' => FALSE,
+                        'compress' => FALSE,
+                        'stricton' => FALSE
+                ),
+                array(
+                        'hostname' => 'localhost2',
+                        'username' => '',
+                        'password' => '',
+                        'database' => '',
+                        'dbdriver' => 'mysqli',
+                        'dbprefix' => '',
+                        'pconnect' => TRUE,
+                        'db_debug' => TRUE,
+                        'cache_on' => FALSE,
+                        'cachedir' => '',
+                        'char_set' => 'utf8',
+                        'dbcollat' => 'utf8_general_ci',
+                        'swap_pre' => '',
+                        'encrypt' => FALSE,
+                        'compress' => FALSE,
+                        'stricton' => FALSE
+                )
+        );
+You can specify as many failovers as you like.
+
+The reason we use a multi-dimensional array rather than a more simple one is to permit you to optionally store multiple sets of 
+
+connection values. If, for example, you run multiple environments (development, production, test, etc.) under a single 
+
+installation, you can set up a connection group for each, then switch between groups as needed. For example, to set up a “test”environment you would do this:
+
+$db['test'] = array(
+        'dsn'   => '',
+        'hostname' => 'localhost',
+        'username' => 'root',
+        'password' => '',
+        'database' => 'database_name',
+        'dbdriver' => 'mysqli',
+        'dbprefix' => '',
+        'pconnect' => TRUE,
+        'db_debug' => TRUE,
+        'cache_on' => FALSE,
+        'cachedir' => '',
+        'char_set' => 'utf8',
+        'dbcollat' => 'utf8_general_ci',
+        'swap_pre' => '',
+        'compress' => FALSE,
+        'encrypt' => FALSE,
+        'stricton' => FALSE,
+        'failover' => array()
+);
+..................................................
+
+$this->load->database('group_name');
+Where group_name is the name of the connection group from your config file.
+To connect manually to a desired database you can pass an array of values:
+
+$config['hostname'] = 'localhost';
+$config['username'] = 'myusername';
+$config['password'] = 'mypassword';
+$config['database'] = 'mydatabase';
+$config['dbdriver'] = 'mysqli';
+$config['dbprefix'] = '';
+$config['pconnect'] = FALSE;
+$config['db_debug'] = TRUE;
+$config['cache_on'] = FALSE;
+$config['cachedir'] = '';
+$config['char_set'] = 'utf8';
+$config['dbcollat'] = 'utf8_general_ci';
+$this->load->database($config);
+
+For the PDO driver, you should use the $config[‘dsn’] setting instead of ‘hostname’ and ‘database’:
+$config[‘dsn’] = ‘mysql:host=localhost;dbname=mydatabase’;
+
+$dsn = 'dbdriver://username:password@hostname/database';
+$this->load->database($dsn);
+
+To override default config values when connecting with a DSN string, add the config variables as a query string.
+
+$dsn = 'dbdriver://username:password@hostname/database?
+
+char_set=utf8&dbcollat=utf8_general_ci&cache_on=true&cachedir=/path/to/cache';
+$this->load->database($dsn);
+
+Connecting to Multiple Databases
+
+If you need to connect to more than one database simultaneously you can do so as follows:
+
+$DB1 = $this->load->database('group_one', TRUE);
+$DB2 = $this->load->database('group_two', TRUE);
+$DB1->query();
+$DB1->result();
+
+
+Reconnecting / Keeping the Connection Alive
+$this->db->reconnect();
+
+
+Manually closing the Connection
+
+While CodeIgniter intelligently takes care of closing your database connections, you can explicitly close the connection.
+
+$this->db->close();
+
+
+Turn persistent connections off when using multiple connections fixes the problem of connection conflicts: 
+$db['default']['pconnect'] = FALSE;
+
+
+
+/**
+  * A simple class which handles loading multiple-databases in codeigniter
+  */
+
+ class DatabaseLoader {
+
+         public function __construct() {
+                 $this->load();
+         }
+
+         /**
+          * Load the databases and ignore the old ordinary CI loader which only allows one
+          */
+         public function load() {
+                 $CI =& get_instance();
+
+                 $CI->db = $CI->load->database('default', TRUE);
+                 $CI->db2 = $CI->load->database('db2', TRUE);
+         }
+
+
+
+one more example
+//Default database configuration
+$db['default'] = array(
+    'dsn'       => '',
+    'hostname' => 'localhost',
+    'username' => 'db_username',
+    'password' => 'db_password',
+    'database' => 'db_name',
+    'dbdriver' => 'mysqli',
+    'dbprefix' => '',
+    'pconnect' => FALSE,
+    'db_debug' => (ENVIRONMENT !== 'production'),
+    'cache_on' => FALSE,
+    'cachedir' => '',
+    'char_set' => 'utf8',
+    'dbcollat' => 'utf8_general_ci',
+    'swap_pre' => '',
+    'encrypt'  => FALSE,
+    'compress' => FALSE,
+    'stricton' => FALSE,
+    'failover' => array(),
+    'save_queries' => TRUE
+);
+
+//Another database configuration
+$db['another_db'] = array(
+    'dsn'       => '',
+    'hostname' => 'localhost',
+    'username' => 'db_username',
+    'password' => 'db_password',
+    'database' => 'db_name2',
+    'dbdriver' => 'mysqli',
+    'dbprefix' => '',
+    'pconnect' => FALSE,
+    'db_debug' => (ENVIRONMENT !== 'production'),
+    'cache_on' => FALSE,
+    'cachedir' => '',
+    'char_set' => 'utf8',
+    'dbcollat' => 'utf8_general_ci',
+    'swap_pre' => '',
+    'encrypt'  => FALSE,
+    'compress' => FALSE,
+    'stricton' => FALSE,
+    'failover' => array(),
+    'save_queries' => TRUE
+);
+
+$DB2 = $this->load->database('another_db', TRUE);
+
+//Default database query
+$this->db->select('first_name, last_name');
+$this->db->from('users');
+$this->db->where('id', 99);
+$query = $this->db->get();
+
+//Another database query
+$DB2->select('image');
+$DB2->from('cdn_images');
+$DB2->where('id', 25);
+$query = $DB2->get();
+
+cookie in CI
+..................
+
+Cookie is a small piece of data sent from web server to store on client's computer. CodeIgniter has one helper called “Cookie Helper” for cookie management. In the set_cookie() function, we can pass all the values using two ways.
+
+$this->load->helper('cookie');
+
+set_cookie(8params)
+
+$name (mixed) − Cookie name or associative array of all of the parameters available to this function
+
+$value (string) − Cookie value
+
+$expire (int) − Number of seconds until expiration
+
+$domain (string) − Cookie domain (usually: .yourdomain.com)
+
+$path (string) − Cookie path
+
+$prefix (string) − Cookie name prefix
+
+$secure (bool) − Whether to only send the cookie through HTTPS
+
+$httponly (bool) − Whether to hide the cookie from JavaScrip
+
+
+get_cookie()
+echo $this->input->cookie('remember_me',true);
+
+delete_cookie()
+delete_cookie("name");
+delete_cookie($name, $domain, $path, $prefix)
+
+........................................………………………………………………………………………………………………………………………
+
+
+SESSION
+........................................................................................................
+
+$this->load->library('session');
+
+$newdata = array(
+        'username'  => 'johndoe',
+        'email'     => 'johndoe@some-site.com',
+        'logged_in' => TRUE
+);
+$this->session->set_userdata($newdata); 
+
+OR
+
+$this->session->set_userdata('some_name', 'some_value');
+
+$this->session->has_userdata('some_name'); // 
+
+................................
+
+
+
+unset($_SESSION['some_name']);
+
+// or multiple values:
+
+unset(
+        $_SESSION['some_name'],
+        $_SESSION['another_name']
+);
+
+
+$this->session->unset_userdata('some_name');
+$array_items = array('username', 'email');
+$this->session->unset_userdata($array_items);
+
+..................................
+
+FLASH DATA
+
+CodeIgniter supports “flashdata”, or session data that will only be available for the next request, and is then automatically cleared.
+
+To mark an existing item as “flashdata”:
+$this->session->mark_as_flash('item');
+$this->session->mark_as_flash(array('item', 'item2'));
+
+
+To add flashdata:
+
+$_SESSION['item'] = 'value';
+$this->session->mark_as_flash('item');
+
+Or alternatively, using the set_flashdata() method:
+
+$this->session->set_flashdata('item', 'value');
+
+You can also pass an array to set_flashdata(), in the same manner as set_userdata().
+
+Reading flashdata variables is the same as reading regular session data through $_SESSION: $_SESSION['item']
+
+
+
+Important
+The userdata() method will NOT return flashdata items.
+
+However, if you want to be sure that you’re reading “flashdata” (and not any other kind), you can also use the flashdata() 
+
+method:
+$this->session->flashdata('item');
+
+
+
+
+
+Tempdata:-
+
+CodeIgniter also supports “tempdata”, or session data with a specific expiration time. After the value expires, or the session expires or is deleted, the value is automatically removed.
+
+Similarly to flashdata,  tempdata variables are regular session vars that are marked in a specific way under the ‘__ci_vars’ key 
+
+(again, don’t touch that one).
+
+To mark an existing item as “tempdata”, simply pass its key and expiry time (in seconds!) to the mark_as_temp() method:
+
+// 'item' will be erased after 300 seconds
+$this->session->mark_as_temp('item', 300);
+
+You can mark multiple items as tempdata in two ways, depending on whether you want them all to have the same expiry time or not:
+
+// Both 'item' and 'item2' will expire after 300 seconds
+$this->session->mark_as_temp(array('item', 'item2'), 300);
+
+// 'item' will be erased after 300 seconds, while 'item2'
+// will do so after only 240 seconds
+$this->session->mark_as_temp(array(
+        'item'  => 300,
+        'item2' => 240
+));
+
+To add tempdata:
+
+$_SESSION['item'] = 'value';
+$this->session->mark_as_temp('item', 300); // Expire in 5 minutes
+
+Or alternatively, using the set_tempdata() method:
+
+$this->session->set_tempdata('item', 'value', 300);
+
+You can also pass an array to set_tempdata():
+
+$tempdata = array('newuser' => TRUE, 'message' => 'Thanks for joining!');
+
+$this->session->set_tempdata($tempdata, NULL, $expire);
+
+Note
+
+If the expiration is omitted or set to 0, the default time-to-live value of 300 seconds (or 5 minutes) will be used. To read a tempdata variable, again you can just access it through the $_SESSION superglobal array:
+
+$_SESSION['item']
+
+Important
+The userdata() method will NOT return tempdata items.
+
+Or if you want to be sure that you’re reading “tempdata” (and not any other kind), you can also use the tempdata() method:
+
+$this->session->tempdata('item');
+
+And of course, if you want to retrieve all existing tempdata:
+
+$this->session->tempdata();
+
+Note
+The tempdata() method returns NULL if the item cannot be found.
+
+If you need to remove a tempdata value before it expires, you can directly unset it from the $_SESSION array:
+
+unset($_SESSION['item']);
+
+However, this won’t remove the marker that makes this specific item to be tempdata (it will be invalidated on the next HTTP request), so if you intend to reuse that same key in the same request, you’d want to use unset_tempdata():
+
+$this->session->unset_tempdata('item');
+
+Destroying a Session
+To clear the current session (for example, during a logout), you may simply use either PHP’s session_destroy() function, or the sess_destroy() method. Both will work in exactly the same way:
+
+session_destroy();
+
+// or
+
+$this->session->sess_destroy();
+
+Note
+This must be the last session-related operation that you do during the same request. All session data (including flashdata and tempdata) will be destroyed permanently and functions will be unusable during the same request after you destroy the session.
+
+Or to get an array with all flashdata, simply omit the key parameter:
+$this->session->flashdata();
+
+Note
+The flashdata() method returns NULL if the item cannot be found.
+
+If you find that you need to preserve a flashdata variable through an additional request, you can do so using the 
+
+keep_flashdata() method. You can either pass a single item or an array of flashdata items to keep.
+
+$this->session->keep_flashdata('item');
+$this->session->keep_flashdata(array('item1', 'item2', 'item3'));
+
+
+
+
+
+
+PHP DATETIME
+
+$x = date('Y-m-d', strtotime('previous sunday'));
+//var_dump($x);
+$date_find = date('Y-m-d', strtotime('previous monday'));
+
+date('Y-m-d', strtotime('previous sunday'));
+date("Y-m-d", strtotime($this_sund.'- 7 days'));  //last week Sunday 
+
+
+$daysdiff = 7/130/80/90/ etc..
+$date_find = date('Y-m-d', strtotime(date("Y-m-d").' -'.$daysdiff.' day'));  // previous 7 or 130.. days
+
+ $date_find = date("Y-m-d",strtotime("first day of last month"));
+ $cur_date = date("Y-m-d",strtotime("last day of last month"));
+
+ else if($days=='custom')
+    {
+		$diff = 1;
+        $fromDate = $_POST['from_date']; //form date
+		$fromDate_n = $_POST['from_date'];//Apr 04, 2016
+        $fromDate =DateTime::createFromFormat('M d, Y', $fromDate);	
+		$date_find =$fromDate->format('Y-m-d');		
+        $toDate = $_POST['to_date'];  //to date
+		$toDate_n = $_POST['to_date'];  //to date
+        $toDate =DateTime::createFromFormat('M d, Y', $toDate);
+		$cur_date =$toDate->format('Y-m-d');
+		$popup_cus_val =$date_find.'_'.$cur_date;
+	}
+….……………………………………
+
+XSS(Cross-site scripting ) VS CSRF(Cross-site request forgery)
+
+
+
+
+Cross-site scripting (XSS) is a type of computer security vulnerability typically found in web applications. XSS enables attackers to inject client-side scripts into web pages viewed by other users. A cross-site scripting vulnerability may be used by attackers to bypass access controls such as the same-origin policy
+
+Cross-site request forgery, also known as one-click attack or session riding and abbreviated as CSRF (sometimes pronounced sea-surf) or XSRF, is a type of malicious exploit of a website where unauthorized commands are transmitted from a user that the web application trusts.
+
+Fundamental difference is that CSRF (Cross-site Request forgery) happens in authenticated sessions when the server trusts the user/browser, while XSS (Cross-Site scripting) doesn't need an authenticated session and can be exploited when the vulnerable website doesn't do the basics of validating or escaping input.
+
+Fundamental difference is that CSRF (Cross-site Request forgery) happens in authenticated sessions when the server trusts the user/browser, while XSS (Cross-Site scripting) doesn't need an authenticated session and can be exploited when the vulnerable website doesn't do the basics of validating or escaping input.
+
+In case of XSS, when the server doesn't validate or escapes input as a primary control, an attacker can send inputs via request parameters or any kind of client side input fields (which can be cookies, form fields or url params). These can be written back to screen , persisted in database or executed remotely. For CSRF, consider an example when you are logged in into your banking site and at the same time logged into Facebook in another tab in same browser. An attacker can place a malicious link embedded in another link or zero byte image which can be like yourbanksite.com/transfer.do?fromaccnt=youraccnt&toaccnt=attackersAccount&amt=2500. Now, if you accidentally click on this link , in the background transfer can happen though you clicked from the Facebook tab.
+
+This is because your session is still active in browser and browser has your session id. This is the reason the most popular CSRF protection is having another server supplied unique token generated and appended in the request. This unique token is not something which is known to browser like session id. This additional validation at server (i.e whether the transfer request also contains the correct CSRF token) will make sure that the attacker manipulated link (I.e the CSRF attack) in above example will never work.
+
+
+
+
+You can enable CSRF protection by altering your application/config/config.php file in the following way:
+Cross-site request forgery (CSRF)
+
+If you use the form helper, then form_open() will automatically insert a hidden csrf field in your forms. If not, then you can use get_csrf_token_name() and get_csrf_hash()
+
+$csrf = array(
+        'name' => $this->security->get_csrf_token_name(),
+        'hash' => $this->security->get_csrf_hash()
+);
+
+...
+
+<input type="hidden" name="<?=$csrf['name'];?>" value="<?=$csrf['hash'];?>" />
+
+...............
+
+
+Tokens may be either regenerated on every submission (default) or kept the same throughout the life of the CSRF cookie. The default regeneration of tokens provides stricter security, but may result in usability concerns as other tokens become invalid (back/forward navigation, multiple tabs/windows, asynchronous actions, etc). You may alter this behavior by editing the following config parameter
+
+$config['csrf_regenerate'] = TRUE;
+
+Select URIs can be whitelisted from csrf protection (for example API endpoints expecting externally POSTed content). You can add these URIs by editing the ‘csrf_exclude_uris’ config parameter:
+
+$config['csrf_exclude_uris'] = array('api/person/add');
+
+Regular expressions are also supported (case-insensitive):
+$config['csrf_exclude_uris'] = array(
+        'api/record/[0-9]+',
+        'api/title/[a-z]+'
+);
+............................
+
+
+class CI_Security
+xss_clean($str[, $is_image = FALSE])
+Parameters:	
+$str (mixed) – Input string or an array of strings
+Returns:XSS-clean data
+
+Return type:mixed
+
+Tries to remove XSS exploits from the input data and returns the cleaned string. If the optional second parameter is set to true, it will return boolean TRUE if the image is safe to use and FALSE if malicious data was detected in it.
+........................
+
+sanitize_filename($str[, $relative_path = FALSE])
+Parameters:	
+$str (string) – File name/path
+$relative_path (bool) – Whether to preserve any directories in the file path
+Returns:Sanitized file name/path
+Return type:string
+
+Tries to sanitize filenames in order to prevent directory traversal attempts and other security threats, which is particularly useful for files that were supplied via user input.
+
+$filename = $this->security->sanitize_filename($this->input->post('filename'));
+
+If it is acceptable for the user input to include relative paths, e.g. file/in/some/approved/folder.txt, you can set the second optional parameter, $relative_path to TRUE.
+
+$filename = $this->security->sanitize_filename($this->input->post('filename'), TRUE);
+
+.......................................
+entity_decode($str[, $charset = NULL])
+Parameters:	
+$str (string) – Input string
+$charset (string) – Character set of the input string
+Returns:Entity-decoded string
+
+Return type:string
+
+This method acts a lot like PHP’s own native html_entity_decode() function in ENT_COMPAT mode, only it tries to detect HTML entities that don’t end in a semicolon because some browsers allow that.
+
+If the $charset parameter is left empty, then your configured $config['charset'] value will be used.
+
+.......................
+
+get_random_bytes($length)
+Parameters:$length (int) – Output length
+Returns:	A binary stream of random bytes or FALSE on failure
+Return type:string
+A convenience method for getting proper random bytes via mcrypt_create_iv(), /dev/urandom or openssl_random_pseudo_bytes() (in that order), if one of them is available.
+
+Used for generating CSRF and XSS tokens.
+
+Note
+The output is NOT guaranteed to be cryptographically secure, just the best attempt at that.
+
+..................
