@@ -1,0 +1,901 @@
+
+
+$query = $this->db->get('mytable');  // Produces: SELECT * FROM mytable
+$query = $this->db->get('mytable', 10, 20);
+
+
+$query = $this->db->get('mytable');
+foreach ($query->result() as $row)
+{
+   echo $row->title;
+}
+
+Compiles the selection query just like $this->db->get() but does not run the query. This method simply returns the SQL query as a string.
+
+$sql = $this->db->get_compiled_select('mytable');
+echo  $sql;
+// Prints string: SELECT * FROM mytable
+
+The second parameter enables you to set whether or not the query builder query will be reset (by default it will be reset, just like when using $this->db->get()):
+
+echo $this->db->limit(10,20)->get_compiled_select('mytable', FALSE);
+
+// Prints string: SELECT * FROM mytable LIMIT 20, 10
+// (in MySQL. Other databases have slightly different syntax)
+echo $this->db->select('title, content, date')->get_compiled_select();
+// Prints string: SELECT title, content, date FROM mytable LIMIT 20, 10
+
+.............................
+$this->db->get_where()
+
+$query = $this->db->get_where('mytable', array('id' => $id), $limit, $offset);
+......................
+
+$this->db->select()
+$this->db->select('title, content, date');
+$query = $this->db->get('mytable');
+// Executes: SELECT title, content, date FROM mytable
+...........…
+
+If you set it to FALSE, CodeIgniter will not try to protect your field or table names. This is useful if you need a compound select statement where automatic escaping of fields may break them.
+
+$this->db->select('(SELECT SUM(payments.amount) FROM payments WHERE payments.invoice_id=4) AS amount_paid', FALSE);
+$query = $this->db->get('mytable');
+
+..........................................
+
+
+$this->db->select_max() / $this->db->select_min()/ $this->db->select_avg()/ $this->db->select_sum()
+
+$this->db->select_max('age');
+$query = $this->db->get('members');  // Produces: SELECT MAX(age) as age FROM members
+
+$this->db->select_max('age', 'member_age');
+$query = $this->db->get('members'); // Produces: SELECT MAX(age) as member_age FROM members
+
+.................................
+
+$this->db->from()
+
+$this->db->select('title, content, date');
+$this->db->from('mytable');
+$query = $this->db->get();  // Produces: SELECT title, content, date FROM mytable
+
+.........................................
+
+$this->db->join()
+
+$this->db->select('*');
+$this->db->from('blogs');
+$this->db->join('comments', 'comments.id = blogs.id');
+$query = $this->db->get();
+
+// Produces:
+// SELECT * FROM blogs JOIN comments ON comments.id = blogs.id
+
+If you need a specific type of JOIN you can specify it via the third parameter of the function. Options are: left, right, outer, inner, left outer, and right outer.
+
+$this->db->join('comments', 'comments.id = blogs.id', 'left');
+// Produces: LEFT JOIN comments ON comments.id = blogs.id
+
+....................................
+
+Looking for Specific Data
+
+1)Simple key/value method:
+
+$this->db->where('name', $name);
+$this->db->where('title', $title);
+$this->db->where('status', $status);
+// WHERE name = 'Joe' AND title = 'boss' AND status = 'active'
+
+2)Custom key/value method:
+$this->db->where('name !=', $name);
+$this->db->where('id <', $id); // Produces: WHERE name != 'Joe' AND id < 45
+
+3) Associative array method:
+$array = array('name' => $name, 'title' => $title, 'status' => $status);
+$this->db->where($array);
+// Produces: WHERE name = 'Joe' AND title = 'boss' AND status = 'active'
+
+4) custome string:
+$where = "name='Joe' AND status='boss' OR status='active'";
+$this->db->where($where);
+
+...............................
+
+$this->db->or_where()
+$this->db->where('name !=', $name);
+$this->db->or_where('id >', $id);  // Produces: WHERE name != 'Joe' OR id > 50
+......................
+
+$this->db->where_in()
+$names = array('Frank', 'Todd', 'James');
+$this->db->where_in('username', $names);
+// Produces: WHERE username IN ('Frank', 'Todd', 'James')
+..................................
+
+$this->db->where_not_in()
+$names = array('Frank', 'Todd', 'James');
+$this->db->where_not_in('username', $names);
+// Produces: WHERE username NOT IN ('Frank', 'Todd', 'James')
+
+..............
+
+$this->db->or_where_not_in()
+$names = array('Frank', 'Todd', 'James');
+$this->db->or_where_not_in('username', $names);
+// Produces: OR username NOT IN ('Frank', 'Todd', 'James')
+
+....................................................................................................
+
+
+Looking for Similar Data
+
+$this->db->like()
+
+Simple key/value method:
+
+$this->db->like('title', 'match');
+    // Produces: WHERE `title` LIKE '%match%' ESCAPE '!'
+
+    If you use multiple method calls they will be chained together with AND between them:
+    $this->db->like('title', 'match');
+    $this->db->like('body', 'match');
+// WHERE `title` LIKE '%match%' ESCAPE '!' AND  `body` LIKE '%match% ESCAPE '!'
+
+If you want to control where the wildcard (%) is placed, you can use an optional third argument. Your options are ‘before’, ‘after’ and ‘both’ (which is the default).
+
+$this->db->like('title', 'match', 'before'); // Produces: WHERE `title` LIKE '%match' ESCAPE '!'
+
+$this->db->like('title', 'match', 'after'); // Produces: WHERE `title` LIKE 'match%' ESCAPE '!'
+
+$this->db->like('title', 'match', 'both'); // Produces: WHERE `title` LIKE '%match%' ESCAPE '!'
+
+
+
+ 
+Associative array method:
+
+    $array = array('title' => $match, 'page1' => $match, 'page2' => $match);
+    $this->db->like($array);
+    // WHERE `title` LIKE '%match%' ESCAPE '!' AND  `page1` LIKE '%match%' ESCAPE '!' AND  `page2` LIKE '%match%' ESCAPE '!'
+
+
+
+...........................................
+
+$this->db->or_like()
+
+$this->db->like('title', 'match'); $this->db->or_like('body', $match);
+// WHERE `title` LIKE '%match%' ESCAPE '!' OR  `body` LIKE '%match%' ESCAPE '!'
+
+$this->db->not_like()
+$this->db->like('title', 'match');
+$this->db->or_not_like('body', 'match');
+// WHERE `title` LIKE '%match% OR  `body` NOT LIKE '%match%' ESCAPE '!'
+
+
+$this->db->group_by()
+$this->db->group_by("title"); // Produces: GROUP BY title
+
+ $this->db->distinct();
+$this->db->get('table'); // Produces: SELECT DISTINCT * FROM table
+
+
+
+...................................
+
+
+this->db->having()
+Permits you to write the HAVING portion of your query. There are 2 possible syntaxes, 1 argument or 2:
+ 
+$this->db->having('user_id',  45);  // Produces: HAVING user_id = 45
+
+You can also pass an array of multiple values as well:
+
+$this->db->having(array('title =' => 'My Title', 'id <' => $id));
+// Produces: HAVING title = 'My Title', id < 45
+
+If you are using a database that CodeIgniter escapes queries for, you can prevent escaping content by passing an optional third argument, and setting it to FALSE.
+
+$this->db->having('user_id',  45);  // Produces: HAVING `user_id` = 45 in some databases such as MySQL
+
+$this->db->having('user_id',  45, FALSE);  // Produces: HAVING user_id = 45
+$this->db->or_having()
+...........................................................
+
+Ordering results
+
+$this->db->order_by()
+The second parameter lets you set the direction of the result. Options are ASC, DESC AND RANDOM.
+
+You can also pass your own string in the first parameter:
+$this->db->order_by('title DESC, name ASC');
+// Produces: ORDER BY `title` DESC, `name` ASC
+
+$this->db->order_by('title', 'DESC');
+// Produces: ORDER BY `title` DESC
+
+Or multiple function calls can be made if you need multiple fields.
+
+$this->db->order_by('title', 'DESC');
+$this->db->order_by('name', 'ASC');
+// Produces: ORDER BY `title` DESC, `name` ASC
+
+If you choose the RANDOM direction option, then the first parameters will be ignored, unless you specify a numeric seed value.
+
+$this->db->order_by('title', 'RANDOM');
+// Produces: ORDER BY RAND()
+
+$this->db->order_by(42, 'RANDOM');
+// Produces: ORDER BY RAND(42)
+............................................................
+Inserting Data
+ $data = array(
+        'title' => 'My title',
+        'name' => 'My Name',
+        'date' => 'My date');
+
+$this->db->insert('mytable', $data);
+
+// Produces: INSERT INTO mytable (title, name, date) VALUES ('My title', 'My name', 'My date')
+The first parameter will contain the table name, the second is an associative array of values.
+
+
+Here is an example using an object:
+/*
+class Myclass {
+        public $title = 'My Title';
+        public $content = 'My Content';
+        public $date = 'My Date';
+}
+*/
+
+$object = new Myclass;
+$this->db->insert('mytable', $object);
+
+// Produces: INSERT INTO mytable (title, content, date) VALUES ('My Title', 'My Content', 'My Date')
+The first parameter will contain the table name, the second is an object.
+All values are escaped automatically producing safer queries.
+....................
+
+$this->db->get_compiled_insert()
+Compiles the insertion query just like $this->db->insert() but does not run the query. This method simply returns the SQL query as a string.
+
+Example:
+
+$data = array(
+        'title' => 'My title',
+        'name'  => 'My Name',
+        'date'  => 'My date'
+);
+
+$sql = $this->db->set($data)->get_compiled_insert('mytable');
+echo $sql;
+
+// Produces string: INSERT INTO mytable (`title`, `name`, `date`) VALUES ('My title', 'My name', 'My date')
+..............................
+
+Insert batch
+
+$this->db->insert_batch()
+$data = array(
+        array(
+                'title' => 'My title',
+                'name' => 'My Name',
+                'date' => 'My date'
+        ),
+        array(
+                'title' => 'Another title',
+                'name' => 'Another Name',
+                'date' => 'Another date'
+        )
+);
+
+$this->db->insert_batch('mytable', $data);
+// Produces: INSERT INTO mytable (title, name, date) VALUES ('My title', 'My name', 'My date'),  ('Another title', 'Another name', 'Another date')
+
+...................................................
+
+Updating Data
+
+$this->db->replace()
+
+This method executes a REPLACE statement, which is basically the SQL standard for (optional) DELETE + INSERT, using PRIMARY and UNIQUE keys as the determining factor. In our case, it will save you from the need to implement complex logics with different combinations of select(), update(), delete() and insert() calls.
+
+Example:
+
+$data = array(
+        'title' => 'My title',
+        'name'  => 'My Name',
+        'date'  => 'My date'
+);
+
+$this->db->replace('table', $data);
+
+// Executes: REPLACE INTO mytable (title, name, date) VALUES ('My title', 'My name', 'My date')
+
+In the above example, if we assume that the title field is our primary key, then if a row containing ‘My title’ as the title value, that row will be deleted with our new row data replacing it.
+Usage of the set() method is also allowed and all fields are automatically escaped, just like with insert().
+...........................
+
+$this->db->set()
+
+This function enables you to set values for inserts or updates.
+It can be used instead of passing a data array directly to the insert or update functions:
+
+$this->db->set('name', $name);
+$this->db->insert('mytable');  // Produces: INSERT INTO mytable (`name`) VALUES ('{$name}')
+
+If you use multiple function called they will be assembled properly based on whether you are doing an insert or an update:
+
+$this->db->set('name', $name);
+$this->db->set('title', $title);
+$this->db->set('status', $status);
+$this->db->insert('mytable');
+
+set() will also accept an optional third parameter ($escape), that will prevent data from being escaped if set to FALSE. To illustrate the difference, here is set() used both with and without the escape parameter.
+
+..........................
+
+$this->db->set('field', 'field+1', FALSE);
+$this->db->where('id', 2);
+$this->db->update('mytable'); // gives UPDATE mytable SET field = field+1 WHERE id = 2
+
+$this->db->set('field', 'field+1');
+$this->db->where('id', 2);
+$this->db->update('mytable'); // gives UPDATE `mytable` SET `field` = 'field+1' WHERE `id`= 2
+
+You can also pass an associative array to this function:
+$array = array(
+        'name' => $name,
+        'title' => $title,
+        'status' => $status
+);
+
+$this->db->set($array);
+$this->db->insert('mytable');
+
+......................
+
+Or an object:
+
+/*
+class Myclass {
+        public $title = 'My Title';
+        public $content = 'My Content';
+        public $date = 'My Date';
+}
+*/
+
+$object = new Myclass;
+$this->db->set($object);
+$this->db->insert('mytable');
+
+
+.................................
+
+$this->db->update()
+
+Generates an update string and runs the query based on the data you supply. You can pass an array or an object to the function. Here is an example using an array:
+
+$data = array(
+        'title' => $title,
+        'name' => $name,
+        'date' => $date
+);
+
+$this->db->where('id', $id);
+$this->db->update('mytable', $data);
+// Produces:
+//
+//      UPDATE mytable
+//      SET title = '{$title}', name = '{$name}', date = '{$date}'
+//      WHERE id = $id
+
+Or you can supply an object:
+
+/*
+class Myclass {
+        public $title = 'My Title';
+        public $content = 'My Content';
+        public $date = 'My Date';
+}
+*/
+
+$object = new Myclass;
+$this->db->where('id', $id);
+$this->db->update('mytable', $object);
+// Produces:
+//
+// UPDATE `mytable`
+// SET `title` = '{$title}', `name` = '{$name}', `date` = '{$date}'
+// WHERE id = `$id`
+......................................
+
+Note
+All values are escaped automatically producing safer queries.
+
+You’ll notice the use of the $this->db->where() function, enabling you to set the WHERE clause. You can optionally pass this information directly into the update function as a string:
+
+$this->db->update('mytable', $data, "id = 4");
+
+Or as an array:
+$this->db->update('mytable', $data, array('id' => $id));
+
+You may also use the $this->db->set() function described above when performing updates.
+..................................
+
+$this->db->update_batch()
+
+Generates an update string based on the data you supply, and runs the query. You can either pass an array or an object to the function. Here is an example using an array:
+
+$data = array(
+   array(
+      'title' => 'My title' ,
+      'name' => 'My Name 2' ,
+      'date' => 'My date 2'
+   ),
+   array(
+      'title' => 'Another title' ,
+      'name' => 'Another Name 2' ,
+      'date' => 'Another date 2'
+   )
+);
+
+$this->db->update_batch('mytable', $data, 'title');
+
+// Produces:
+// UPDATE `mytable` SET `name` = CASE
+// WHEN `title` = 'My title' THEN 'My Name 2'
+// WHEN `title` = 'Another title' THEN 'Another Name 2'
+// ELSE `name` END,
+// `date` = CASE
+// WHEN `title` = 'My title' THEN 'My date 2'
+// WHEN `title` = 'Another title' THEN 'Another date 2'
+// ELSE `date` END
+// WHERE `title` IN ('My title','Another title')
+
+The first parameter will contain the table name, the second is an associative array of values, the third parameter is the where key.
+
+Note
+All values are escaped automatically producing safer queries.
+Note
+affected_rows() won’t give you proper results with this method, due to the very nature of how it works. Instead, update_batch() returns the number of rows affected.
+
+.........................
+
+Deleting Data
+
+$this->db->delete()
+
+Generates a delete SQL string and runs the query.
+
+$this->db->delete('mytable', array('id' => $id));  // Produces: // DELETE FROM mytable  // WHERE id = $id
+
+The first parameter is the table name, the second is the where clause. You can also use the where() or or_where() functions instead of passing the data to the second parameter of the function:
+
+$this->db->where('id', $id);
+$this->db->delete('mytable');
+
+// Produces:
+// DELETE FROM mytable
+// WHERE id = $id
+
+An array of table names can be passed into delete() if you would like to delete data from more than 1 table.
+
+$tables = array('table1', 'table2', 'table3');
+$this->db->where('id', '5');
+$this->db->delete($tables);
+................................
+
+If you want to delete all data from a table, you can use the truncate() function, or empty_table().
+
+$this->db->empty_table()
+
+Generates a delete SQL string and runs the query.:
+$this->db->empty_table('mytable'); // Produces: DELETE FROM mytable
+.....................…
+
+$this->db->truncate()
+
+Generates a truncate SQL string and runs the query.
+
+$this->db->from('mytable');
+$this->db->truncate();
+
+// or
+
+$this->db->truncate('mytable');
+
+// Produce:
+// TRUNCATE mytable
+
+Note
+
+If the TRUNCATE command isn’t available, truncate() will execute as “DELETE FROM table”.
+
+.............................................
+
+
+
+$this->db->get_compiled_delete()
+
+This works exactly the same way as $this->db->get_compiled_insert() except that it produces a DELETE SQL string instead of an INSERT SQL string.
+For more information view documentation for $this->db->get_compiled_insert().
+.............................
+
+
+Method Chaining
+
+Method chaining allows you to simplify your syntax by connecting multiple functions. Consider this example:
+
+$query = $this->db->select('title')
+                ->where('id', $id)
+                ->limit(10, 20)
+                ->get('mytable');
+				
+.................................................
+
+Query Builder Caching
+
+While not “true” caching, Query Builder enables you to save (or “cache”) certain parts of your queries for reuse at a later point in your script’s execution. Normally, when an Query Builder call is completed, all stored information is reset for the next call. With caching, you can prevent this reset, and reuse information easily.
+
+Cached calls are cumulative. If you make 2 cached select() calls, and then 2 uncached select() calls, this will result in 4 select() calls. There are three Caching functions available:
+
+$this->db->start_cache()
+
+This function must be called to begin caching. All Query Builder queries of the correct type (see below for supported queries) are stored for later use.
+
+$this->db->stop_cache()
+
+This function can be called to stop caching.
+
+$this->db->flush_cache()
+
+This function deletes all items from the Query Builder cache.
+An example of caching
+
+Here’s a usage example:
+
+$this->db->start_cache();
+$this->db->select('field1');
+$this->db->stop_cache();
+$this->db->get('tablename');
+//Generates: SELECT `field1` FROM (`tablename`)
+
+$this->db->select('field2');
+$this->db->get('tablename');
+//Generates:  SELECT `field1`, `field2` FROM (`tablename`)
+
+$this->db->flush_cache();
+$this->db->select('field2');
+$this->db->get('tablename');
+//Generates:  SELECT `field2` FROM (`tablename`)
+
+Note
+
+The following statements can be cached: select, from, join, where, like, group_by, having, order_by
+Resetting Query Builder
+
+$this->db->reset_query()
+
+Resetting Query Builder allows you to start fresh with your query without executing it first using a method like $this->db->get() or $this->db->insert(). Just like the methods that execute a query, this will not reset items you’ve cached using Query Builder Caching.
+
+This is useful in situations where you are using Query Builder to generate SQL (ex. $this->db->get_compiled_select()) but then choose to, for instance, run the query:
+
+// Note that the second parameter of the get_compiled_select method is FALSE
+$sql = $this->db->select(array('field1','field2'))
+                                ->where('field3',5)
+                                ->get_compiled_select('mytable', FALSE);
+
+// ...
+// Do something crazy with the SQL code... like add it to a cron script for
+// later execution or something...
+// ...
+
+$data = $this->db->get()->result_array();
+
+// Would execute and return an array of results of the following query:
+// SELECT field1, field1 from mytable where field3 = 5;
+
+Note
+
+Double calls to get_compiled_select() while you’re using the Query Builder Caching functionality and NOT resetting your queries will results in the cache being merged twice. That in turn will i.e. if you’re caching a select() - select the same field twice.
+
+
+
+
+
+
+
+If you need to increase MySQL Connections without MySQL restart do like below 
+-> show variables like ‘max_connections’;
+
+SET GLOBAL max_connections = 150;
+show variables like 'max_connections';
+
+How to get a list of MySQL user accounts
+SELECT User FROM mysql.user
+
+select distinct User from mysql.user;
+
+
+How to take backup of a single table in a MySQL database?
+
+Dump
+
+mysqldump db_name table_name > table_name.sql
+Dumping from a remote database
+
+mysqldump -u <db_username> -h <db_host> -p db_name table_name > table_name.sql
+For further reference
+
+
+
+Restore
+
+mysql -u <user_name> -p db_name
+mysql> source <full_path>/table_name.sql
+or in one line
+
+mysql -u username -p db_name < /path/to/table_name.sql
+
+
+Dump and restore a single table from a compressed (.sql.gz) format
+Credit: John McGrath
+
+Dump
+
+mysqldump db_name table_name | gzip > table_name.sql.gz
+Restore
+
+gunzip < table_name.sql.gz | mysql -u username -p db_name
+
+mysqldump -u -p yourdb yourtable > c:\backups\backup.sql
+
+….…………………………..
+Mysql Daate/time
+
+SELECT DAYOFMONTH('2001-11-21'), MONTH('2005-10-30')
+
+
+
+
+
+
+
+
+
+mysql> SELECT '2008-12-31 23:59:59' + INTERVAL 1 SECOND;
+        -> '2009-01-01 00:00:00'
+mysql> SELECT INTERVAL 1 DAY + '2008-12-31';
+        -> '2009-01-01'
+mysql> SELECT '2005-01-01' - INTERVAL 1 SECOND;
+        -> '2004-12-31 23:59:59'
+mysql> SELECT DATE_ADD('2000-12-31 23:59:59',
+    ->                 INTERVAL 1 SECOND);
+        -> '2001-01-01 00:00:00'
+mysql> SELECT DATE_ADD('2010-12-31 23:59:59',
+    ->                 INTERVAL 1 DAY);
+        -> '2011-01-01 23:59:59'
+mysql> SELECT DATE_ADD('2100-12-31 23:59:59',
+    ->                 INTERVAL '1:1' MINUTE_SECOND);
+        -> '2101-01-01 00:01:00'
+mysql> SELECT DATE_SUB('2005-01-01 00:00:00',
+    ->                 INTERVAL '1 1:1:1' DAY_SECOND);
+        -> '2004-12-30 22:58:59'
+mysql> SELECT DATE_ADD('1900-01-01 00:00:00',
+    ->                 INTERVAL '-1 10' DAY_HOUR);
+        -> '1899-12-30 14:00:00'
+mysql> SELECT DATE_SUB('1998-01-02', INTERVAL 31 DAY);
+        -> '1997-12-02'
+mysql> SELECT DATE_ADD('1992-12-31 23:59:59.000002',
+    ->            INTERVAL '1.999999' SECOND_MICROSECOND);
+        -> '1993-01-01 00:00:01.000001'
+
+
+
+SELECT DAYOFMONTH('2001-11-21'), MONTH('2005-10-30')
+
+
+mysql> SELECT 6/4;
+        -> 1.5000
+mysql> SELECT DATE_ADD('2009-01-01', INTERVAL 6/4 HOUR_MINUTE);
+        -> '2009-01-04 12:20:00'
+
+
+mysql> SELECT CAST(6/4 AS DECIMAL(3,1));
+        -> 1.5
+mysql> SELECT DATE_ADD('1970-01-01 12:00:00',
+    ->                 INTERVAL CAST(6/4 AS DECIMAL(3,1)) HOUR_MINUTE);
+        -> '1970-01-01 13:05:00'
+
+
+mysql> SELECT DATE_ADD('2013-01-01', INTERVAL 1 DAY);
+        -> '2013-01-02'
+mysql> SELECT DATE_ADD('2013-01-01', INTERVAL 1 HOUR);
+        -> '2013-01-01 01:00:00'
+
+mysql> SELECT DATE_ADD('2009-01-30', INTERVAL 1 MONTH);
+        -> '2009-02-28'
+
+mysql> SELECT DATE_ADD('2006-07-00', INTERVAL 1 DAY);
+        -> NULL
+mysql> SELECT '2005-03-32' + INTERVAL 1 MONTH;
+        -> NULL
+
+
+ysql> SELECT DATE_FORMAT('2009-10-04 22:23:00', '%W %M %Y');
+        -> 'Sunday October 2009'
+mysql> SELECT DATE_FORMAT('2007-10-04 22:23:00', '%H:%i:%s');
+        -> '22:23:00'
+mysql> SELECT DATE_FORMAT('1900-10-04 22:23:00',
+    ->                 '%D %y %a %d %m %b %j');
+        -> '4th 00 Thu 04 10 Oct 277'
+mysql> SELECT DATE_FORMAT('1997-10-04 22:23:00',
+    ->                 '%H %k %I %r %T %S %w');
+        -> '22 22 10 10:23:00 PM 22:23:00 00 6'
+mysql> SELECT DATE_FORMAT('1999-01-01', '%X %V');
+        -> '1998 52'
+mysql> SELECT DATE_FORMAT('2006-06-00', '%d');
+        -> '00'
+
+
+mysql> SELECT DAYNAME('2007-02-03');
+        -> 'Saturday'
+
+
+mysql> SELECT DAYOFMONTH('2007-02-03');
+        -> 3
+
+Returns the weekday index for date (1 = Sunday, 2 = Monday, …, 7 = Saturday). These index values correspond to the ODBC standard.
+mysql> SELECT DAYOFWEEK('2007-02-03');
+        -> 7
+
+Returns the day of the year for date, in the range 1 to 366.
+mysql> SELECT DAYOFYEAR('2007-02-03');
+        -> 34
+
+
+The EXTRACT() function uses the same kinds of unit specifiers as DATE_ADD() or DATE_SUB(), but extracts parts from the date rather than performing date arithmetic.
+
+
+mysql> SELECT EXTRACT(YEAR FROM '2009-07-02');
+       -> 2009
+mysql> SELECT EXTRACT(YEAR_MONTH FROM '2009-07-02 01:02:03');
+       -> 200907
+mysql> SELECT EXTRACT(DAY_MINUTE FROM '2009-07-02 01:02:03');
+       -> 20102
+mysql> SELECT EXTRACT(MICROSECOND
+    ->                FROM '2003-01-02 10:30:00.000123');
+        -> 123
+
+
+
+Given a day number N, returns a DATE value.
+mysql> SELECT FROM_DAYS(730669);
+        -> '2000-07-03'
+
+
+If format is given, the result is formatted according to the format string, which is used the same way as listed in the entry for the DATE_FORMAT() function.
+
+mysql> SELECT FROM_UNIXTIME(1447430881);
+        -> '2015-11-13 10:08:01'
+mysql> SELECT FROM_UNIXTIME(1447430881) + 0;
+        -> 20151113100801
+mysql> SELECT FROM_UNIXTIME(UNIX_TIMESTAMP(),
+    ->                      '%Y %D %M %h:%i:%s %x');
+        -> '2015 13th November 10:08:01 2015'
+
+TIMESTAMP can also be used as the first argument to GET_FORMAT(), in which case the function returns the same values as for DATETIME.
+mysql> SELECT DATE_FORMAT('2003-10-03',GET_FORMAT(DATE,'EUR'));
+        -> '03.10.2003'
+mysql> SELECT STR_TO_DATE('10.31.2003',GET_FORMAT(DATE,'USA'));
+        -> '2003-10-31'
+ 
+
+mysql> SELECT HOUR('10:05:03');
+        -> 10
+mysql> SELECT HOUR('272:59:59');
+        -> 272
+
+
+
+mysql> SELECT LAST_DAY('2003-02-05');
+        -> '2003-02-28'
+mysql> SELECT LAST_DAY('2004-02-05');
+        -> '2004-02-29'
+mysql> SELECT LAST_DAY('2004-01-01 01:01:01');
+        -> '2004-01-31'
+mysql> SELECT LAST_DAY('2003-03-32');
+        -> NULL
+
+
+mysql> SELECT MAKEDATE(2011,31), MAKEDATE(2011,32);
+        -> '2011-01-31', '2011-02-01'
+mysql> SELECT MAKEDATE(2011,365), MAKEDATE(2014,365);
+        -> '2011-12-31', '2014-12-31'
+mysql> SELECT MAKEDATE(2011,0);
+        -> NULL
+
+mysql> SELECT MAKETIME(12,15,30);
+        -> '12:15:30'
+
+
+
+mysql> SELECT MICROSECOND('12:00:00.123456');
+        -> 123456
+mysql> SELECT MICROSECOND('2009-12-31 23:59:59.000010');
+        -> 10
+
+mysql> SELECT MINUTE('2008-02-03 10:05:03');
+        -> 5
+
+
+mysql> SELECT MONTH('2008-02-03');
+        -> 2
+
+mysql> SELECT MONTHNAME('2008-02-03');
+        -> 'February'
+
+
+mysql> SELECT NOW();
+        -> '2007-12-15 23:50:26'
+mysql> SELECT NOW() + 0;
+        -> 20071215235026.000000
+
+mysql> SELECT STR_TO_DATE('01,5,2013','%d,%m,%Y');
+        -> '2013-05-01'
+mysql> SELECT STR_TO_DATE('May 1, 2013','%M %d,%Y');
+        -> '2013-05-01'
+
+mysql> SELECT STR_TO_DATE('a09:30:17','a%h:%i:%s');
+        -> '09:30:17'
+mysql> SELECT STR_TO_DATE('a09:30:17','%h:%i:%s');
+        -> NULL
+mysql> SELECT STR_TO_DATE('09:30:17a','%h:%i:%s');
+        -> '09:30:17'
+
+mysql> SELECT STR_TO_DATE('abc','abc');
+        -> '0000-00-00'
+mysql> SELECT STR_TO_DATE('9','%m');
+        -> '0000-09-00'
+mysql> SELECT STR_TO_DATE('9','%s');
+        -> '00:00:09'
+
+mysql> SELECT STR_TO_DATE('00/00/0000', '%m/%d/%Y');
+        -> '0000-00-00'
+mysql> SELECT STR_TO_DATE('04/31/2004', '%m/%d/%Y');
+        -> '2004-04-31'
+
+mysql> SELECT STR_TO_DATE('200442 Monday', '%X%V %W');
+        -> '2004-10-18'
+
+mysql> SELECT DATE_SUB('2008-01-02', INTERVAL 31 DAY);
+        -> '2007-12-02'
+mysql> SELECT SUBDATE('2008-01-02', INTERVAL 31 DAY);
+        -> '2007-12-02'
+
+
+
+
+By default, the current time zone for each connection is the server's time. The time zone can be set on a per-connection basis
+
+In MySQL 5 and above, TIMESTAMP values are converted from the current time zone to UTC for storage, and converted back from UTC to the current time zone for retrieval. (This occurs only for the TIMESTAMP data type, and not for other types such as DATETIME.)
+
+I want to pull out duplicate records in a MySQL Database table
+SELECT firstname, 
+   lastname, 
+   list.address FROM list
+   INNER JOIN (SELECT address
+               FROM   list
+               GROUP  BY address
+               HAVING COUNT(id) > 1) dup
+           ON list.address = dup.address;
+
+SELECT date FROM logs group by date having count(*) >= 2
+SELECT a.firstname, a.lastname, a.addressFROM list aINNER JOIN list b ON a.address = b.addressWHERE a.id <> b.id
+
+I want to remove duplicate records in a MySQL Database table
